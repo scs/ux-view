@@ -1,0 +1,24 @@
+# Ignore working files
+lcv_log
+lcv_simlog
+leanxsugus_host
+leanxsugus_target
+osc_log
+osc_simlog
+
+# Ignore generated binaries
+*.[oa]
+*.gdb
+
+# Ignore files used by the build system
+inc
+lib
+doc
+lgx
+.metadata
+.settings
+.config
+
+# Mac OS X meta data on filesystems that do not support it
+._*
+.DS_Store

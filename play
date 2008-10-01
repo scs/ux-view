@@ -1,0 +1,22 @@
+#! /usr/bin/env bash
+
+trim() {
+	# trim $1: cut of leading and trailing white space
+	# $1: the string to trim
+	
+	echo "$1" | grep -oE "[^ \t\n].*[^ \t\n]"
+}
+
+get_config() {
+	# get_config $1 $2: load a configuration from a configuration file
+	# $1: the name of the configuration file
+	# $2: name of the configuration
+	
+	if [ -e "$1" ]; then
+		trim "$(grep -E "^$2" < $1 | cut -d "=" -f 2)"
+	fi
+}
+
+CONFIG_TARGET_IP=$(get_config ".config" "CONFIG_TARGET_IP")
+
+nc $CONFIG_TARGET_IP 9999 | mplayer - -demuxer rawvideo -rawvideo w=752:h=480:format=y8
