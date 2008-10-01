@@ -111,7 +111,7 @@ OSC_ERR mainLoop() {
 	}
 	
 	/* This set the exposure time to a reasonable value for the linghting in the sorter. */
-	err = OscCamSetShutterWidth(25000);
+	err = OscCamSetShutterWidth(15000);
 	if (err != SUCCESS)
 	{
 		OscLog(ERROR, "%s: Unable to set the exposure time!\n", __func__);

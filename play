@@ -19,4 +19,4 @@ get_config() {
 
 CONFIG_TARGET_IP=$(get_config ".config" "CONFIG_TARGET_IP")
 
-nc $CONFIG_TARGET_IP 9999 | mplayer - -demuxer rawvideo -rawvideo w=752:h=480:format=y8
+nc $CONFIG_TARGET_IP 9999 | mplayer - -demuxer rawvideo -rawvideo w=752:h=480:format=y8:fps=100
