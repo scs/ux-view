@@ -69,7 +69,7 @@ static OSC_ERR init(const int argc, const char * * argv)
 		goto fb_err;
 	}
 	
-	OscCamSetupPerspective(OSC_CAM_PERSPECTIVE_DEFAULT);
+	OscCamSetupPerspective(OSC_CAM_PERSPECTIVE_180DEG_ROTATE);
 	
 	return SUCCESS;
 	
