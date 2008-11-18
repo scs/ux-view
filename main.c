@@ -19,7 +19,8 @@ void *hFramework;
 struct OSC_DEPENDENCY deps[] = {
 	{ "log", OscLogCreate, OscLogDestroy },
 	{ "sup", OscSupCreate, OscSupDestroy },
-	{ "cam", OscCamCreate, OscCamDestroy }
+	{ "cam", OscCamCreate, OscCamDestroy },
+	{ "gpio", OscGpioCreate, OscGpioDestroy }
 };
 
 /*!
@@ -30,10 +31,6 @@ struct OSC_DEPENDENCY deps[] = {
 static OSC_ERR init(const int argc, const char * * argv)
 {
 	OSC_ERR err = SUCCESS;
-	
-	/* Set log levels. */
-	OscLogSetConsoleLogLevel(EMERG);
-	OscLogSetFileLogLevel(EMERG);
 	
 	/* Create the framework */
 	err = OscCreate(&hFramework);
@@ -50,6 +47,10 @@ static OSC_ERR init(const int argc, const char * * argv)
 		fprintf(stderr, "%s: error: Unable to load dependencies! (%d)\n", __func__, err);
 		goto dep_err;
 	}
+	
+	/* Set log levels. */
+	OscLogSetConsoleLogLevel(EMERG);
+	OscLogSetFileLogLevel(INFO);
 	
 	/* Seed the random generator */
 	srand(OscSupCycGet());
@@ -104,7 +105,7 @@ OSC_ERR mainLoop() {
 	}
 	
 	/* This set the exposure time to a reasonable value for the linghting in the sorter. */
-	err = OscCamSetShutterWidth(15000);
+	err = OscCamSetShutterWidth(40000);
 	if (err != SUCCESS)
 	{
 		OscLog(ERROR, "%s: Unable to set the exposure time!\n", __func__);
@@ -133,30 +134,34 @@ OSC_ERR mainLoop() {
 		return err;
 	}
 	
-retry1:
-	/* This starts the capture and records the time. */
 	err = OscCamSetupCapture(OSC_CAM_MULTI_BUFFER);
 	if (err != SUCCESS)
 	{
+		OscLog(ERROR, "%s: Unable to setup the capture (%d)!\n", __func__, err);
+	}
+	
+	err = OscGpioTriggerImage();
+	if (err != SUCCESS)
+	{
 		OscLog(ERROR, "%s: Unable to trigger the capture (%d)!\n", __func__, err);
-		usleep(100000);
-		goto retry1;
 	}
 	
 	loop {
 		uint8 * pFrameBuffer;
 		
-	retry:
-		/* This starts the capture and records the time. */
 		err = OscCamSetupCapture(OSC_CAM_MULTI_BUFFER);
 		if (err != SUCCESS)
 		{
+			OscLog(ERROR, "%s: Unable to setup the capture (%d)!\n", __func__, err);
+		}
+	
+		err = OscGpioTriggerImage();
+		if (err != SUCCESS)
+		{
 			OscLog(ERROR, "%s: Unable to trigger the capture (%d)!\n", __func__, err);
-			usleep(100000);
-			goto retry;
 		}
 		
-		/* Here we wait for the picture be availible in the frame buffer. */
+		/* Here we wait for the picture to be availible in the frame buffer. */
 		err = OscCamReadPicture(OSC_CAM_MULTI_BUFFER, &pFrameBuffer, 0, 0);
 		if (err != SUCCESS)
 		{
@@ -165,7 +170,7 @@ retry1:
 		}
 		
 		err = write(1, pFrameBuffer, WIDTH_CAPTURE * HEIGHT_CAPTURE);
-		if (err == -1)
+		if (err != WIDTH_CAPTURE * HEIGHT_CAPTURE)
 			return err;
 	}
 	

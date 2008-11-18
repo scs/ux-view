@@ -26,7 +26,7 @@ HOST_LDFLAGS = -lm
 # Cross-Compiler executables and flags
 TARGET_CC = bfin-uclinux-gcc 
 TARGET_CFLAGS = -Wall $(PEDANTIC) -O2 -D OSC_TARGET
-TARGET_LDFLAGS = -Wl,-elf2flt="-s 1048576" -lbfdsp
+TARGET_LDFLAGS = -Wl,-elf2flt="-s 2048" -lbfdsp
 
 # Source files of the application
 SOURCES = main.c
@@ -38,6 +38,12 @@ all: target
 $(OUT)_%:
 	@ echo "Please use make {target,targetdbg,targetsim} to build the application first"
 	@ exit 1
+
+debayer: debayer.c *.h inc/*.h lib/libosc_host.a
+	$(HOST_CC) debayer.c lib/libosc_host.a $(HOST_CFLAGS) -o $@
+
+segment: segment.c *.h
+	$(HOST_CC) segment.c $(HOST_CFLAGS) -o $@
 
 # Compiles the executable
 target: $(SOURCES) *.h inc/*.h lib/libosc_target.a
