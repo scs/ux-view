@@ -40,7 +40,7 @@ $(OUT)_%:
 	@ exit 1
 
 # Compiles the executable
-target: $(SOURCES) inc/*.h lib/libosc_target.a
+target: $(SOURCES) *.h inc/*.h lib/libosc_target.a
 	$(TARGET_CC) $(SOURCES) lib/libosc_target.a $(TARGET_CFLAGS) $(TARGET_LDFLAGS) -o $(OUT)$(TARGET_SUFFIX)
 	! [ -d /tftpboot ] || cp $(OUT)$(TARGET_SUFFIX) /tftpboot/$(OUT)
 
@@ -60,9 +60,8 @@ get:
 
 # deploying to the device
 .PHONY: deploy
-deploy: $(OUT)$(TARGET_SUFFIX)
-	rcp -rp runapp.sh root@$(CONFIG_TARGET_IP):/app/
-	rcp -rp $(OUT)$(TARGET_SUFFIX) root@$(CONFIG_TARGET_IP):/app/$(OUT)
+deploy: target
+	scp -p netview-runapp.sh $(OUT)$(TARGET_SUFFIX) $(CONFIG_TARGET_IP):/mnt/app
 	@ echo "Application deployed."
 
 # Cleanup

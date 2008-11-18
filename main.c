@@ -5,18 +5,11 @@
  * This file defines the main funtion and helper function that initialize the application. It also contains the main loop that defines the processing cycle of the application.
  */
 
-/*!
- * \mainpage
- * \image html sugus-orange.png
- * \section Introduction
- * This is the documentation of the LeanXsugus source code. LeanXsugus is a Project to port the Sugus sorting algorithm of the SCS Demo-Sorter to the LeanXcam.
- *
- */
-
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "support.h"
 
@@ -99,7 +92,7 @@ OSC_ERR Unload()
  */
 OSC_ERR mainLoop() {
 	OSC_ERR err = SUCCESS;
-	static uint8 const frameBuffers[2][OSC_CAM_MAX_IMAGE_WIDTH * OSC_CAM_MAX_IMAGE_HEIGHT];
+	static uint8 const frameBuffers[2][WIDTH_CAPTURE * HEIGHT_CAPTURE];
 	uint8 const multiBufferIds[] = { 0, 1 };
 	
 	/* This sets the sensor area to capture the picture from. */
@@ -142,7 +135,7 @@ OSC_ERR mainLoop() {
 	
 retry1:
 	/* This starts the capture and records the time. */
-	err = OscCamSetupCapture(OSC_CAM_MULTI_BUFFER, OSC_CAM_TRIGGER_MODE_MANUAL);
+	err = OscCamSetupCapture(OSC_CAM_MULTI_BUFFER);
 	if (err != SUCCESS)
 	{
 		OscLog(ERROR, "%s: Unable to trigger the capture (%d)!\n", __func__, err);
@@ -155,7 +148,7 @@ retry1:
 		
 	retry:
 		/* This starts the capture and records the time. */
-		err = OscCamSetupCapture(OSC_CAM_MULTI_BUFFER, OSC_CAM_TRIGGER_MODE_MANUAL);
+		err = OscCamSetupCapture(OSC_CAM_MULTI_BUFFER);
 		if (err != SUCCESS)
 		{
 			OscLog(ERROR, "%s: Unable to trigger the capture (%d)!\n", __func__, err);
