@@ -43,7 +43,7 @@ action_view() {
 }
 
 action_imgseq() {
-	local FOLDER="recordings/$(date "+%Y-%m-%d-%H_%M_%S")"
+	local FOLDER="$OPT_RECORDINGS_FOLDER/$(date "+%Y-%m-%d-%H_%M_%S")"
 	local i=0;
 	
 	mkdir -p "$FOLDER"
@@ -66,15 +66,20 @@ action_imgseq() {
 }
 
 action_record() {
+	local FILE="$OPT_RECORDINGS_FOLDER/$(date "+%Y-%m-%d-%H_%M_%S").mp4"
+	mkdir -p "$OPT_RECORDINGS_FOLDER"
+	
 	if [ "$1" == "grey" ]; then
-		mplayer - -demuxer rawvideo -rawvideo w=752:h=480:format=y8:fps=100
+		ffmpeg -f rawvideo -pix_fmt gray -s 752x480 -r 20 -i - -qscale "$OPT_FFMPEG_QSCALE" "$FILE"
 	elif [ "$1" == "color" ]; then
-		mplayer - -demuxer rawvideo -rawvideo w=752:h=480:format=rgb24:fps=100
+		ffmpeg -f rawvideo -pix_fmt rgb24 -s 752x480 -r 20 -i - -qscale "$OPT_FFMPEG_QSCALE" "$FILE"
 	fi
 }
 
-OPT_ACTION=view
+OPT_ACTION="view"
 OPT_DEBAYER=
+OPT_RECORDINGS_FOLDER="recordings"
+OPT_FFMPEG_QSCALE="4"
 
 if [ "$1" == "raw" ] || [ "$1" == "view" ] || [ "$1" == "imgseq" ] || [ "$1" == "record" ]; then
 	OPT_ACTION=$1
@@ -84,6 +89,14 @@ fi
 while [ "${1:0:1}" == "-" ]; do
 	if [ "$1" == "-d" ]; then
 		OPT_DEBAYER=1
+	elif [ "$OPT_ACTION" == "record" ] && [ "$1" == "-q" ]; then
+		if ! [ "$2" ]; then
+			echo "Error: Option needs an arguemnt: $1" >&2
+			exit 1
+		fi
+		
+		OPT_FFMPEG_QSCALE=$2
+		shift
 	else
 		echo "Error: Unknown option: $1" >&2
 		exit 1

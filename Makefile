@@ -32,7 +32,7 @@ TARGET_LDFLAGS = -Wl,-elf2flt="-s 2048" -lbfdsp
 SOURCES = main.c
 
 # Default target
-all: target
+all: target debayer segment
 
 # this target ensures that the application has been built prior to deployment
 $(OUT)_%:
