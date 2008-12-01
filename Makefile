@@ -56,7 +56,7 @@ get:
 # deploying to the device
 .PHONY: deploy
 deploy: netviewd
-	scp -p $^ root@$(CONFIG_TARGET_IP):/bin/
+	- scp -p $^ root@$(CONFIG_TARGET_IP):/bin/
 	@ echo "Application deployed."
 
 # Cleanup
