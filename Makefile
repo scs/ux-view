@@ -1,9 +1,3 @@
-# The executable name is suffix depending on the target
-OUT = netview
-HOST_SUFFIX = _host
-TARGET_SUFFIX = _target
-TARGETSIM_SUFFIX = _sim_target
-
 # this includes the framework configuration
 -include .config
 
@@ -29,15 +23,10 @@ TARGET_CFLAGS = -Wall $(PEDANTIC) -O2 -D OSC_TARGET
 TARGET_LDFLAGS = -Wl,-elf2flt="-s 2048" -lbfdsp
 
 # Source files of the application
-SOURCES = main.c
 
 # Default target
-all: target debayer segment
-
-# this target ensures that the application has been built prior to deployment
-$(OUT)_%:
-	@ echo "Please use make {target,targetdbg,targetsim} to build the application first"
-	@ exit 1
+.PHONY: all
+all: netviewd debayer segment
 
 debayer: debayer.c *.h inc/*.h lib/libosc_host.a
 	$(HOST_CC) debayer.c lib/libosc_host.a $(HOST_CFLAGS) -o $@
@@ -46,35 +35,34 @@ segment: segment.c *.h
 	$(HOST_CC) segment.c $(HOST_CFLAGS) -o $@
 
 # Compiles the executable
-target: $(SOURCES) *.h inc/*.h lib/libosc_target.a
-	$(TARGET_CC) $(SOURCES) lib/libosc_target.a $(TARGET_CFLAGS) $(TARGET_LDFLAGS) -o $(OUT)$(TARGET_SUFFIX)
-	! [ -d /tftpboot ] || cp $(OUT)$(TARGET_SUFFIX) /tftpboot/$(OUT)
+netviewd: netviewd.c *.h inc/*.h lib/libosc_target.a
+	$(TARGET_CC) netviewd.c lib/libosc_target.a $(TARGET_CFLAGS) $(TARGET_LDFLAGS) -o $@
+	! [ -d /tftpboot ] || cp $@ /tftpboot/$@
 
 # Target to explicitly start the configuration process
 .PHONY: config
 config:
-	@ ./configure
-	@ $(MAKE) --no-print-directory get
+	./configure
+	$(MAKE) --no-print-directory get
 
 # Set symlinks to the framework
 .PHONY: get
 get:
-	@ rm -rf inc lib
-	@ ln -s $(CONFIG_FRAMEWORK)/staging/inc ./inc
-	@ ln -s $(CONFIG_FRAMEWORK)/staging/lib ./lib
+	rm -rf inc lib
+	ln -s $(CONFIG_FRAMEWORK)/staging/inc ./inc
+	ln -s $(CONFIG_FRAMEWORK)/staging/lib ./lib
 	@ echo "Configured Oscar framework."
 
 # deploying to the device
 .PHONY: deploy
-deploy: target
-	scp -p netview-runapp.sh $(OUT)$(TARGET_SUFFIX) $(CONFIG_TARGET_IP):/mnt/app
+deploy: netviewd
+	scp -p $^ root@$(CONFIG_TARGET_IP):/bin/
 	@ echo "Application deployed."
 
 # Cleanup
 .PHONY: clean
 clean:	
-	rm -f $(OUT)$(HOST_SUFFIX) $(OUT)$(TARGET_SUFFIX) $(OUT)$(TARGETSIM_SUFFIX)
-	rm -rf doc/{html,latex,index.html}
+	rm -f netviewd debayer segment
 	rm -f *.o *.gdb
 	@ echo "Directory cleaned"
 
