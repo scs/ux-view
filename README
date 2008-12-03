@@ -1,0 +1,20 @@
+= ux-view (formerly netview) =
+
+This is a server daemon and client to stream raw video data from the leanXcam to the host. It supports displaying the stream using MPlayer, encoding it to an MPEG file with ffmpeg and writing it to an image sequence using ImageMagick.
+
+Debayering is optionally done on the host with the debayer tool. The server daemon is called netviewd.
+
+== Builing ==
+
+To generate all the applications for ux-view, type 'make config' to configure the framework and set the target IP address, followed by 'make'.
+
+
+== Invocation ==
+
+The general usage of the netview script is as follows:
+
+	./netview [ view | imgseq | record | raw ] [ -d ]
+
+The 'view' subcommand is the default and displays the stream using MPlayer. The 'imgseq' subcommand stores each image to an individual file. This requires ImageMagick to be installed. The 'record' subcommand encodes the stream into an MPEG files. This requires ffmpeg to be installed. The 'raw' subcommand puts the raw data received from the camera on the standard out. Do not look directly at it!
+
+The '-d' option causes the image to be debayered and displayed or stored in color.
