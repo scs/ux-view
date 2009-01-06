@@ -1,3 +1,12 @@
 #! /usr/bin/env bash
+# do-release [ <action> ]
 
-rm -f "do-tag" "do-release"
+[ "$1" ] && OPT_ACTION=$1 || OPT_ACTION="release"
+
+if [ "$OPT_ACTION" == "release" ]; then
+	rm -f "do-tag" "do-release"
+elif [ "$OPT_ACTION" == "name" ]; then
+	echo "UX-View"
+else
+	echo "Unknown action: $OPT_ACTION" >&2; exit 1
+fi
