@@ -37,7 +37,10 @@ segment: segment.c *.h
 # Compiles the executable
 netviewd: netviewd.c *.h inc/*.h lib/libosc_target.a
 	$(TARGET_CC) netviewd.c lib/libosc_target.a $(TARGET_CFLAGS) $(TARGET_LDFLAGS) -o $@
-	! [ -d /tftpboot ] || cp $@ /tftpboot/$@
+
+# Compiles the executable
+http-alt: http-alt.c *.h inc/*.h lib/libosc_target.a
+	$(TARGET_CC) http-alt.c lib/libosc_target.a $(TARGET_CFLAGS) $(TARGET_LDFLAGS) -o $@
 
 # Target to explicitly start the configuration process
 .PHONY: config

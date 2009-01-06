@@ -48,21 +48,22 @@ action_imgseq() {
 	
 	mkdir -p "$FOLDER"
 	
-	if [ "$1" == "grey" ]; then
-		while true; do
-			i=$[ $i + 1 ]
-			./segment $[ 752 * 480 ] | convert -size 752x480 -depth 8 "GRAY:-" "TIFF:$FOLDER/image-$i.tif" || exit 1
-			
+	while true; do
+		i=$[ $i + 1 ]
+		FILE_NAME="$FOLDER/image-$i.tif"
+		
+		if [ "$1" == "grey" ]; then
+			./segment $[ 752 * 480 ] | convert -size 752x480 -depth 8 "GRAY:-" "TIFF:$FILE_NAME" || exit 1
+		elif [ "$1" == "color" ]; then
+			./segment $[ 3 * 752 * 480 ] | convert -size 752x480 -depth 8 "RGB:-" "TIFF:$FILE_NAME" || exit 1
+		fi
+		
+		if [ "$OPT_IMGSEQ_FILE_NAMES" ]; then
+			echo "$FILE_NAME"
+		else
 			replace_line "Images written: $i" >&2
-		done
-	elif [ "$1" == "color" ]; then
-		while true; do
-			i=$[ $i + 1 ]
-			./segment $[ 3 * 752 * 480 ] | convert -size 752x480 -depth 8 "RGB:-" "TIFF:$FOLDER/image-$i.tif" || exit 1
-			
-			replace_line "Images written: $i" >&2
-		done
-	fi
+		fi
+	done
 }
 
 action_record() {
@@ -76,12 +77,39 @@ action_record() {
 	fi
 }
 
+action_relay() {
+	local TEMP_DIR=$(gmktemp -d)
+	local PIPE_1="$TEMP_DIR/pipe-1"
+	local CONTENT_LENGTH
+	
+	{
+		echo "HTTP/1.1 200 OK"
+		echo "Content-Type: multipart/x-mixed-replace; boundary=boundary"
+		echo
+		echo "--boundary"
+		
+		while true; do
+			CONTENT_LENGTH=$(./segment $[ 3 * 752 * 480 ] | convert -size "752x480" -depth 8 "RGB:-" "JPEG:" | tee "$PIPE_1" | wc -c)
+			
+			echo "Content-Type: image/jpeg"
+			echo "Content-Length: $CONTENT_LENGTH"
+			echo
+			cat "$PIPE_1"
+			echo
+			echo "--boundary"
+		done
+	} | nc -l 8080
+	
+	rm -rf "$TEMP_DIR"
+}
+
 OPT_ACTION="view"
 OPT_DEBAYER=
 OPT_RECORDINGS_FOLDER="recordings"
 OPT_FFMPEG_QSCALE="4"
+OPT_IMGSEQ_FILE_NAMES=
 
-if [ "$1" == "raw" ] || [ "$1" == "view" ] || [ "$1" == "imgseq" ] || [ "$1" == "record" ]; then
+if [ "$1" == "raw" ] || [ "$1" == "view" ] || [ "$1" == "imgseq" ] || [ "$1" == "record" ] || [ "$1" == "relay" ]; then
 	OPT_ACTION=$1
 	shift
 fi
@@ -96,6 +124,9 @@ while [ "${1:0:1}" == "-" ]; do
 		fi
 		
 		OPT_FFMPEG_QSCALE=$2
+		shift
+	elif [ "$OPT_ACTION" == "imgseq" ] && [ "$1" == "--file-names" ]; then
+		OPT_IMGSEQ_FILE_NAMES=1
 		shift
 	else
 		echo "Error: Unknown option: $1" >&2
