@@ -30,6 +30,14 @@ typedef uint32 t_time;
 #define assert(a)
 #endif /* ASSERTS_ENABLE */
 
+#define trace_FMT(fmt ...) "%s(): Line %d" fmt "\n", __FUNCTION__, __LINE__
+#define trace() printk(trace_FMT())
+#define trace_m(format, args ...) OscLog(ERROR, trace_FMT(": " format), ## args)
+#define trace_e(err, m, args ...) trace_m(m ": Error %lld", ## args, (long long) err)
+
+#define fail(e) { err = (e); goto fail; }
+#define fail_m(e, m, args ...) { err = (e); trace_e(e, m, ## args); goto fail; }
+
 #ifdef MARKERS_ENABLE
 #define m fprintf(stderr, "%s: Line %d\n", __func__, __LINE__);
 #define p(n) fprintf(stderr, "%s: Line %d: %s: %d\n", __func__, __LINE__ , #n, n);

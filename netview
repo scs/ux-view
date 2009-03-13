@@ -63,6 +63,8 @@ action_imgseq() {
 		else
 			replace_line "Images written: $i" >&2
 		fi
+		
+		sleep .5
 	done
 }
 
